@@ -1,0 +1,13 @@
+## Mac system files
+.DS_Store
+
+# VS Code settings
+.vscode/
+
+# Data folders (not tracked)
+../data/output/
+../data/input/
+
+# Temporary files
+*.log
+*.tmp
