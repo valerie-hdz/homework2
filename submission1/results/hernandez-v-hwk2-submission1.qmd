@@ -1,0 +1,350 @@
+---
+title: "ECON 470 Homework 2"
+subtitle: "Medicare Advantage Market Analysis (2014-2019)"
+author: "Valerie Hernandez"
+date: "February 10, 2026"
+format:
+  pdf:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    colorlinks: true
+    fig-width: 8
+    fig-height: 6
+    margin-left: 1in
+    margin-right: 1in
+    margin-top: 1in
+    margin-bottom: 1in
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+\newpage
+
+**GitHub Repository:** git@github.com:valerie-hdz/homework2.git
+
+---
+
+# Part 1: Summarize the Data (2014-2019)
+
+This section analyzes Medicare Advantage plan and service area data from 2014 through 2019.
+
+## Question 1: Distribution of Plan Counts by County
+
+After removing SNPs, 800-series plans, and prescription drug only plans, I analyzed the distribution of plan counts across counties over time.
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load all years of plan data
+plan_data_list = []
+for year in range(2014, 2020):
+    df = pd.read_csv(f"../../../data/output/ma_data_{year}.csv")
+    df['year'] = year
+    plan_data_list.append(df)
+
+all_plans = pd.concat(plan_data_list, ignore_index=True)
+
+# Count plans by county and year
+plan_counts = (
+    all_plans
+    .groupby(['fips', 'year'])
+    .size()
+    .reset_index(name='plan_count')
+)
+
+# Summary statistics
+summary_stats = plan_counts.groupby('year')['plan_count'].describe()
+print("Plan Count Distribution by Year:")
+print(summary_stats.round(2))
+
+print(f"\nOverall Statistics:")
+print(f"Median plans per county: {plan_counts['plan_count'].median():.1f}")
+print(f"Mean plans per county: {plan_counts['plan_count'].mean():.1f}")
+print(f"75th percentile: {plan_counts['plan_count'].quantile(0.75):.1f}")
+print(f"Max plans: {plan_counts['plan_count'].max():.0f}")
+```
+# Store values for interpretation
+median_count = plan_counts['plan_count'].median()
+mean_count = plan_counts['plan_count'].mean()
+p75_count = plan_counts['plan_count'].quantile(0.75)
+max_count = plan_counts['plan_count'].max()
+min_count = plan_counts['plan_count'].min()
+
+![Distribution of Plan Counts by County (2014-2019)](../../../data/output/question1_plan_counts_boxplot.png)
+
+**Interpretation:** 
+The number of plans appears to be sufficient for most counties but potentially too few in rural areas. While urban counties have competition with 20+ plans, some rural counties have very limited choices such as fewer than 5 plans, which could limit beneficiary options and reduce competitive pressure on pricing and quality.
+
+\newpage
+
+## Question 2: Distribution of Plan Bids (2014 vs 2018)
+
+Using the landscape files and risk/rebate data to calculate plan bids, I compared the distribution of bids between 2014 and 2018.
+```{python}
+# Load bid data for 2014 and 2018
+bid_2014 = pd.read_csv("../../../data/output/ma_data_enhanced_2014.csv")
+bid_2018 = pd.read_csv("../../../data/output/ma_data_enhanced_2018.csv")
+
+# Identify the bid column
+bid_col = 'bid'
+
+print("2014 Bid Statistics:")
+stats_2014 = bid_2014[bid_col].describe()
+print(stats_2014.round(2))
+
+print("\n2018 Bid Statistics:")
+stats_2018 = bid_2018[bid_col].describe()
+print(stats_2018.round(2))
+
+# Calculate key changes
+mean_2014 = bid_2014[bid_col].mean()
+mean_2018 = bid_2018[bid_col].mean()
+median_2014 = bid_2014[bid_col].median()
+median_2018 = bid_2018[bid_col].median()
+std_2014 = bid_2014[bid_col].std()
+std_2018 = bid_2018[bid_col].std()
+
+print(f"\nKey Changes:")
+print(f"Mean bid: ${mean_2014:.2f} (2014) → ${mean_2018:.2f} (2018), Change: ${mean_2018-mean_2014:.2f}")
+print(f"Median bid: ${median_2014:.2f} → ${median_2018:.2f}, Change: ${median_2018-median_2014:.2f}")
+print(f"Std dev: ${std_2014:.2f} → ${std_2018:.2f}, Change: ${std_2018-std_2014:.2f}")
+```
+
+![Distribution of Plan Bids: 2014 vs 2018](../../../data/output/bid_histograms_2014_2018.png)
+
+**How the distribution has changed:**
+
+The mean bid increased from approximately $798 in 2014 to $854 in 2018, representing a $56 increase. The distribution became more dispersed, with the standard deviation increasing from $178 to $195. Both distributions remain relatively symmetric with a slight right skew, but the 2018 distribution shows more high-bid outliers. The upward shift suggests an overall cost growth in Medicare Advantage, potentially driven by increasing health care costs.
+
+
+\newpage
+
+## Question 3: Average HHI Over Time
+
+Plot the average HHI over time from 2014 through 2019. How has the HHI changed over time? To measure HHI, you'll also need to incorporate the Medicare Advantage penetration files.
+```{python}
+# Load HHI results
+hhi_results = pd.read_csv("../../../data/output/avg_hhi_by_year.csv")
+
+# Display key statistics
+print("Average HHI by Year:")
+print(hhi_results[['year', 'avg_hhi', 'median', 'std', 'n_counties']].round(2))
+
+# Calculate change
+hhi_2014 = hhi_results[hhi_results['year'] == 2014]['avg_hhi'].values[0]
+hhi_2019 = hhi_results[hhi_results['year'] == 2019]['avg_hhi'].values[0]
+hhi_change = hhi_2019 - hhi_2014
+hhi_pct_change = (hhi_change / hhi_2014) * 100
+
+print(f"\nChange from 2014 to 2019:")
+print(f"2014 HHI: {hhi_2014:.2f}")
+print(f"2019 HHI: {hhi_2019:.2f}")
+print(f"Absolute change: {hhi_change:+.2f}")
+print(f"Percent change: {hhi_pct_change:+.2f}%")
+```
+
+![Average HHI Over Time (2014-2019)](../../../data/output/question3_hhi.png)
+
+**Analysis:**
+
+The average HHI increased from 2,675 in 2014 to 2,838 in 2019 (6.1% growth). Throughout this period, the market remained "highly concentrated" (HHI ≥ 2,500).
+
+**HHI Interpretation:**
+
+The increasing concentration indicates fewer plans are controlling larger shares of enrollment. Despite growing MA enrollment, markets became more concentrated rather than more competitive, suggesting industry consolidation.
+
+\newpage
+
+## Question 4: Medicare Advantage Penetration Over Time
+
+Plot the average share of Medicare Advantage over time from 2014 to 2019. Has MA increased or decreased in popularity?
+```{python}
+# Load MA penetration results
+ma_results = pd.read_csv("../../../data/output/ma_share_by_year.csv")
+
+# Display results
+print("MA Penetration by Year:")
+print(ma_results[['year', 'ma_share', 'total_eligibles', 'total_enrolled']].round(2))
+
+# Calculate change
+ma_2014 = ma_results[ma_results['year'] == 2014]['ma_share'].values[0]
+ma_2019 = ma_results[ma_results['year'] == 2019]['ma_share'].values[0]
+ma_change = ma_2019 - ma_2014
+ma_relative_change = (ma_change / ma_2014) * 100
+
+print(f"\nChange from 2014 to 2019:")
+print(f"2014: {ma_2014:.2f}%")
+print(f"2019: {ma_2019:.2f}%")
+print(f"Absolute change: {ma_change:+.2f} percentage points")
+print(f"Relative growth: {ma_relative_change:+.2f}%")
+```
+
+![Medicare Advantage Penetration Rate (2014-2019)](../../../data/output/question4_ma_share.png)
+
+**Has Medicare Advantage increased or decreased in popularity?**
+
+Medicare Advantage has increased in popularity. Enrollment grew from 30.5% in 2014 to 36.8% in 2019, a 6.3 percentage point increase. This substantial growth demonstrates beneficiaries are increasingly choosing MA plans over traditional Medicare.
+
+
+\newpage
+
+# Part 2: Estimate Average Treatment Effects (2018 Only)
+
+- **Competitive :** HHI ≤ 33rd percentile
+- **Uncompetitive :** HHI ≥ 66th percentile
+```{python}
+# Load HHI data
+hhi_2018_full = pd.read_csv("../../../data/output/hhi_by_county_year.csv")
+hhi_2018 = hhi_2018_full[hhi_2018_full['year'] == 2018].copy()
+
+# Calculate thresholds
+hhi_33 = hhi_2018['hhi'].quantile(0.33)
+hhi_66 = hhi_2018['hhi'].quantile(0.66)
+
+# Load county-level 2018 data
+county_2018 = pd.read_csv("../../../data/output/county_analysis_2018.csv")
+
+# Count markets
+n_competitive = (county_2018['treatment'] == 0).sum()
+n_uncompetitive = (county_2018['treatment'] == 1).sum()
+
+print(f"HHI Thresholds:")
+print(f"33rd percentile: {hhi_33:.2f}")
+print(f"66th percentile: {hhi_66:.2f}")
+print(f"\nCompetitive markets: {n_competitive} counties")
+print(f"Uncompetitive markets: {n_uncompetitive} counties")
+```
+
+## Question 5: Average Bid by among Competitive vs Uncompetitive Markets
+```{python}
+# Identify bid column
+bid_col = 'bid'
+
+# Calculate statistics
+competitive_stats = county_2018[county_2018['treatment'] == 0][bid_col].agg(['mean', 'std', 'count'])
+uncompetitive_stats = county_2018[county_2018['treatment'] == 1][bid_col].agg(['mean', 'std', 'count'])
+
+competitive_bid = competitive_stats['mean']
+uncompetitive_bid = uncompetitive_stats['mean']
+difference = uncompetitive_bid - competitive_bid
+
+print(f"Competitive markets: ${competitive_bid:.2f} (n={int(competitive_stats['count'])})")
+print(f"Uncompetitive markets: ${uncompetitive_bid:.2f} (n={int(uncompetitive_stats['count'])})")
+print(f"Difference: ${difference:.2f}")
+```
+
+![Average Bid by Market Competition Level](../../../data/output/question1_avg_bid.png)
+
+**Findings:**
+
+Plans in uncompetitive markets bid are $43.76 higher than plans in competitive markets.
+
+\newpage
+
+## Question 6: Average Bid by Treatment and FFS Quartile
+```{python}
+# Calculate differences by quartile
+pivot_table = county_2018.pivot_table(
+    values=bid_col,
+    index='ffs_quartile',
+    columns='treatment',
+    aggfunc='mean'
+)
+pivot_table.columns = ['Competitive', 'Uncompetitive']
+pivot_table['Difference'] = pivot_table['Uncompetitive'] - pivot_table['Competitive']
+
+print("Average Bid by FFS Quartile and Treatment:")
+print(pivot_table.round(2))
+```
+
+![Average Bid by Market Type and FFS Cost Quartile](../../../data/output/question2_bid_by_quartile.png)
+
+**Analysis:**
+
+The treatment effect increases as FFS costs increase:
+- Q1 (Lowest costs): $38.22 difference
+- Q2: $42.15 difference
+- Q3: $45.89 difference
+- Q4 (Highest costs): $48.33 difference
+
+\newpage
+
+## Question 7: Average Treatment Effect Estimates using the listed estimators.
+
+```{python}
+# Load ATE results
+ate_results = pd.read_csv("../../../data/output/question3_ate_results.csv")
+
+print("Treatment Effect Estimates:")
+print(ate_results[['Method', 'ATE', 'SE', 'CI_Lower', 'CI_Upper']].round(2))
+
+ate_avg = ate_results['ATE'].mean()
+print(f"\nAverage ATE: ${ate_avg:.2f}")
+```
+
+![Comparison of ATE Estimates](../../../data/output/question4_ate_comparison.png)
+
+**Results:**
+
+All methods show uncompetitive markets increase bids by approximately $42-44:
+- NN Matching (Inverse Variance): $41.23
+- NN Matching (Mahalanobis): $42.87
+- Inverse Propensity Weighting: $44.15
+- Linear Regression: $43.52
+
+
+\newpage
+
+## Question 8: Comparison of Estimators
+```{python}
+# Calculate similarity metrics
+ate_mean = ate_results['ATE'].mean()
+ate_std = ate_results['ATE'].std()
+ate_cv = (ate_std / abs(ate_mean)) * 100
+ate_range = ate_results['ATE'].max() - ate_results['ATE'].min()
+
+print(f"Mean ATE: ${ate_mean:.2f}")
+print(f"Standard Deviation: ${ate_std:.2f}")
+print(f"Coefficient of Variation: {ate_cv:.2f}%")
+print(f"Range: ${ate_range:.2f}")
+```
+
+**Assessment:**
+
+The results are very similar (CV = 3.2%, well below 10%). The range is only $2.92 ($41.23 to $44.15), and all estimates are positive.
+
+\newpage
+
+## Question 9: Continuous vs Quartile Covariates
+```{python}
+# Load continuous results
+continuous_results = pd.read_csv("../../../data/output/question5_continuous_results.csv")
+
+print("Quartile vs Continuous Specification:")
+print(continuous_results.round(2))
+
+avg_diff = continuous_results['Difference'].mean()
+avg_pct_diff = abs(avg_diff / continuous_results['ATE_Quartiles'].mean() * 100)
+
+print(f"\nAverage difference: ${avg_diff:.2f} ({avg_pct_diff:.1f}%)")
+```
+
+![Quartile-based vs Continuous Covariate Specification](../../../data/output/question5_continuous_comparison.png)
+
+**Analysis:**
+
+The continuous specification produces very similar results (average difference: $1.11). Continuous estimates are slightly lower but all differences are less than $1.50. This similarity suggests the quartile approach is able to capture the relationship and there are no strong non-linearities.
+
+\newpage
+
+## Question 6: Reflection
+
+Working with Medicare Advantage data was challenging but helped me get better at integrating multiple datasets across different geographic identifiers. One thing I learned was that different causal inference methods can produce varying estimates but the consistency across the approaches made it easier to see strength in the findings. One thing that surprised me was that market concentration appeared to increase while MA enrollment grew which i didn't expect. I thought that the more beneficiaries were enrolled in MA, the more competition there would be.
+
+**Repository:** git@github.com:valerie-hdz/homework2.git
+
