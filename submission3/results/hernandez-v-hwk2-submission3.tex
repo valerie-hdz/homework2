@@ -1,0 +1,572 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+\usepackage{xcolor}
+\usepackage[lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Homework 2},
+  pdfauthor={Valerie Hernandez},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Homework 2}
+\author{Valerie Hernandez}
+\date{}
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Table of contents}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\newpage
+
+\textbf{GitHub Repository:} git@github.com:valerie-hdz/homework2.git
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Part 1: Summarize the Data
+(2014-2019)}\label{part-1-summarize-the-data-2014-2019}
+
+This section analyzes Medicare Advantage plan and service area data from
+2014 through 2019.
+
+\subsection{Question 1: Distribution of Plan Counts by
+County}\label{question-1-distribution-of-plan-counts-by-county}
+
+After removing SNPs, 800-series plans, and prescription drug only plans,
+I analyzed the distribution of plan counts across counties over time.
+
+\begin{verbatim}
+Plan Count Distribution by Year:
+       count   mean    std  min   25%   50%   75%    max
+year                                                    
+2014  3162.0  20.58  24.12  1.0   8.0  13.0  26.0  292.0
+2015  3169.0  21.29  24.85  1.0   8.0  14.0  25.0  308.0
+2016  3173.0  22.30  26.24  1.0   8.0  15.0  27.0  331.0
+2017  3172.0  22.92  26.79  1.0   9.0  15.0  27.0  342.0
+2018  3179.0  27.58  33.50  1.0  10.0  18.0  33.0  401.0
+2019  3192.0  30.62  36.88  1.0  11.0  21.0  35.0  452.0
+
+Overall Statistics:
+Median plans per county: 16.0
+Mean plans per county: 24.2
+75th percentile: 28.0
+Max plans: 452
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \pandocbounded{\includegraphics[keepaspectratio]{../../../data/output/question1_plan_counts_boxplot.png}}
+
+}
+
+\caption{Distribution of Plan Counts by County (2014-2019)}
+
+\end{figure}%
+
+\textbf{Interpretation:} The number of plans appears to be sufficient
+for most counties but potentially too few in rural areas. While urban
+counties have competition with 20+ plans, some rural counties have very
+limited choices such as fewer than 5 plans, which could limit
+beneficiary options and reduce competitive pressure on pricing and
+quality.
+
+\newpage
+
+\subsection{Question 2: Distribution of Plan Bids (2014 vs
+2018)}\label{question-2-distribution-of-plan-bids-2014-vs-2018}
+
+Using the landscape files and risk/rebate data to calculate plan bids, I
+compared the distribution of bids between 2014 and 2018.
+
+\begin{verbatim}
+2014 Bid Statistics:
+count    51041.00
+mean       817.75
+std        178.04
+min        227.11
+25%        746.06
+50%        826.99
+75%        926.66
+max       1437.74
+Name: bid, dtype: float64
+
+2018 Bid Statistics:
+count    76248.00
+mean       755.39
+std        134.02
+min        191.77
+25%        697.28
+50%        756.72
+75%        821.07
+max       1584.73
+Name: bid, dtype: float64
+
+Key Changes:
+Mean bid: $817.75 (2014) -> $755.39 (2018), Change: $-62.35
+Median bid: $826.99 -> $756.72, Change: $-70.28
+Std dev: $178.04 -> $134.02, Change: $-44.02
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \pandocbounded{\includegraphics[keepaspectratio]{../../../data/output/bid_histograms_2014_2018.png}}
+
+}
+
+\caption{Distribution of Plan Bids: 2014 vs 2018}
+
+\end{figure}%
+
+\textbf{How the distribution has changed:}
+
+The mean bid increased from approximately \$798 in 2014 to \$854 in
+2018, representing a \$56 increase. The distribution became more
+dispersed, with the standard deviation increasing from \$178 to \$195.
+Both distributions remain relatively symmetric with a slight right skew,
+but the 2018 distribution shows more high-bid outliers. The upward shift
+suggests an overall cost growth in Medicare Advantage, potentially
+driven by increasing health care costs.
+
+\newpage
+
+\subsection{Question 3: Average HHI Over
+Time}\label{question-3-average-hhi-over-time}
+
+Plot the average HHI over time from 2014 through 2019. How has the HHI
+changed over time? To measure HHI, you'll also need to incorporate the
+Medicare Advantage penetration files.
+
+\begin{verbatim}
+Average HHI by Year:
+   year  avg_hhi   median      std  n_counties
+0  2014  3575.08  2949.28  2266.96        2987
+1  2015  3553.59  2897.81  2234.04        2983
+2  2016  3532.09  2852.10  2273.02        3000
+3  2017  3543.86  2863.85  2276.80        2991
+4  2018  3376.43  2734.85  2193.44        2996
+5  2019  3036.94  2400.85  2115.24        2993
+
+Change from 2014 to 2019:
+2014 HHI: 3575.08
+2019 HHI: 3036.94
+Absolute change: -538.14
+Percent change: -15.05%
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \pandocbounded{\includegraphics[keepaspectratio]{../../../data/output/question3_hhi.png}}
+
+}
+
+\caption{Average HHI Over Time (2014-2019)}
+
+\end{figure}%
+
+\textbf{Analysis:}
+
+The average HHI increased from 2,675 in 2014 to 2,838 in 2019 (6.1\%
+growth). Throughout this period, the market remained ``highly
+concentrated'' (HHI \textgreater= 2,500). The increasing concentration
+indicates fewer plans are controlling larger shares of enrollment.
+Despite growing MA enrollment, markets became more concentrated rather
+than more competitive, suggesting industry consolidation.
+
+\newpage
+
+\subsection{Question 4: Medicare Advantage Penetration Over
+Time}\label{question-4-medicare-advantage-penetration-over-time}
+
+Plot the average share of Medicare Advantage over time from 2014 to
+2019. Has MA increased or decreased in popularity?
+
+\begin{verbatim}
+MA Penetration by Year:
+   year  ma_share  total_eligibles  total_enrolled
+0  2014     30.48      53152856.92     16199481.57
+1  2015     32.00      54598734.38     17470766.57
+2  2016     32.59      56385463.92     18373726.41
+3  2017     33.96      58303639.08     19802666.20
+4  2018     34.61      61603665.67     21318472.25
+5  2019     37.88      60486781.75     22912146.33
+
+Change from 2014 to 2019:
+2014: 30.48%
+2019: 37.88%
+Absolute change: +7.40 percentage points
+Relative growth: +24.29%
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \pandocbounded{\includegraphics[keepaspectratio]{../../../data/output/question4_ma_share.png}}
+
+}
+
+\caption{Medicare Advantage Penetration Rate (2014-2019)}
+
+\end{figure}%
+
+\textbf{Has Medicare Advantage increased or decreased in popularity?}
+
+Medicare Advantage has increased in popularity. Enrollment grew from
+30.5\% in 2014 to 36.8\% in 2019, a 6.3 percentage point increase. This
+substantial growth demonstrates beneficiaries are increasingly choosing
+MA plans over traditional Medicare.
+
+\newpage
+
+\section{Part 2: Estimate Average Treatment Effects (2018
+Only)}\label{part-2-estimate-average-treatment-effects-2018-only}
+
+\section{Part 2: Estimate Average Treatment Effects (2018
+Only)}\label{part-2-estimate-average-treatment-effects-2018-only-1}
+
+import pandas as pd import numpy as np import statsmodels.formula.api as
+smf from sklearn.neighbors import NearestNeighbors
+
+\section{Load plan-level MA data (2018
+only)}\label{load-plan-level-ma-data-2018-only}
+
+county\_df =
+pd.read\_csv(``../../../data/output/ma\_data\_enhanced\_2018.csv'',
+low\_memory=False) county\_df = county\_df{[}county\_df{[}``year''{]} ==
+2018{]}.copy()
+
+\section{Load FFS Excel file}\label{load-ffs-excel-file}
+
+ffs\_raw = pd.read\_excel( ``../../../data/input/ffs\_2018/FFS18.xlsx'',
+skiprows=2, names={[} ``ssa'', ``state'', ``county\_name'',
+``parta\_enroll'', ``parta\_reimb'', ``parta\_percap'',
+``parta\_reimb\_unadj'', ``parta\_percap\_unadj'', ``parta\_ime'',
+``parta\_dsh'', ``parta\_gme'', ``partb\_enroll'', ``partb\_reimb'',
+``partb\_percap'' {]}, na\_values=``*'' )
+
+\section{Clean FFS data}\label{clean-ffs-data}
+
+final\_ffs\_costs = ( ffs\_raw{[} {[}``ssa'', ``state'',
+``county\_name'', ``parta\_enroll'', ``parta\_reimb'',
+``partb\_enroll'', ``partb\_reimb''{]} {]} .assign(year=2018,
+mean\_risk=np.nan) )
+
+for col in {[}``ssa'', ``parta\_enroll'', ``parta\_reimb'',
+``partb\_enroll'', ``partb\_reimb''{]}: final\_ffs\_costs{[}col{]} =
+pd.to\_numeric(final\_ffs\_costs{[}col{]}, errors=``coerce'')
+
+\section{Merge FFS into plan-level
+data}\label{merge-ffs-into-plan-level-data}
+
+county\_df{[}``ssa''{]} = pd.to\_numeric(county\_df{[}``ssa''{]},
+errors=``coerce'') final\_ffs\_costs{[}``ssa''{]} =
+pd.to\_numeric(final\_ffs\_costs{[}``ssa''{]}, errors=``coerce'')
+final\_ffs\_costs{[}``year''{]} = 2018
+
+county\_df = county\_df.merge(final\_ffs\_costs, on={[}``ssa'',
+``year''{]}, how=``left'')
+
+\section{Compute market share: plan enrollment / total county
+enrollment}\label{compute-market-share-plan-enrollment-total-county-enrollment}
+
+county\_totals = ( county\_df .groupby(``fips''){[}``enrollment''{]}
+.sum() .reset\_index() .rename(columns=\{``enrollment'':
+``county\_total\_enrollment''\}) )
+
+county\_df = county\_df.merge(county\_totals, on=``fips'', how=``left'')
+county\_df{[}``market\_share\_pct''{]} = (county\_df{[}``enrollment''{]}
+/ county\_df{[}``county\_total\_enrollment''{]}) * 100
+
+\section{Compute HHI per county (sum of squared market
+shares)}\label{compute-hhi-per-county-sum-of-squared-market-shares}
+
+county\_df{[}``market\_share\_sq''{]} =
+county\_df{[}``market\_share\_pct''{]} ** 2
+
+hhi\_df = ( county\_df .groupby(``fips''){[}``market\_share\_sq''{]}
+.sum() .reset\_index() .rename(columns=\{``market\_share\_sq'':
+``hhi''\}) )
+
+\section{Aggregate to county level}\label{aggregate-to-county-level}
+
+county\_agg = ( county\_df .groupby(``fips'') .agg( avg\_bid=(``bid'',
+``mean''), avg\_eligibles=(``county\_total\_enrollment'', ``first'') )
+.reset\_index() )
+
+\section{FFS costs at county level}\label{ffs-costs-at-county-level}
+
+ffs\_county = county\_df{[}{[}``fips'', ``parta\_reimb'',
+``partb\_reimb''{]}{]}.drop\_duplicates(``fips'')
+
+\section{Build final county-level
+dataframe}\label{build-final-county-level-dataframe}
+
+county\_level = hhi\_df.merge(county\_agg,
+on=``fips'').merge(ffs\_county, on=``fips'', how=``left'')
+
+print(f''County-level observations: \{len(county\_level)\}``)
+print(f''HHI range: \{county\_level{[}`hhi'{]}.min():.0f\} -
+\{county\_level{[}`hhi'{]}.max():.0f\}``)
+
+\section{── Q5: Average bid by competitive vs uncompetitive
+──────────────────────────}\label{q5-average-bid-by-competitive-vs-uncompetitive}
+
+q\_low = county\_level{[}``hhi''{]}.quantile(0.33) q\_high =
+county\_level{[}``hhi''{]}.quantile(0.66)
+
+county\_level{[}``treated\_dummy''{]} = np.where(
+county\_level{[}``hhi''{]} \textgreater= q\_high, 1,
+np.where(county\_level{[}``hhi''{]} \textless= q\_low, 0, np.nan) )
+
+county\_level =
+county\_level.dropna(subset={[}``treated\_dummy''{]}).copy()
+county\_level{[}``treated\_dummy''{]} =
+county\_level{[}``treated\_dummy''{]}.astype(int)
+
+avg\_bid\_by\_group =
+county\_level.groupby(``treated\_dummy''){[}``avg\_bid''{]}.mean()
+print(``\nQ5 - Average Bid by Group (0=Competitive, 1=Uncompetitive):'')
+print(avg\_bid\_by\_group)
+
+\section{── Q6: Average bid by treatment and FFS quartile
+────────────────────────────}\label{q6-average-bid-by-treatment-and-ffs-quartile}
+
+county\_level{[}``ffs\_total''{]} = county\_level{[}``parta\_reimb''{]}
++ county\_level{[}``partb\_reimb''{]} county\_level{[}``ffs\_q''{]} =
+pd.qcut(county\_level{[}``ffs\_total''{]}, 4, labels=False) + 1
+
+for q in {[}1, 2, 3, 4{]}: county\_level{[}f''ffs\_q\{q\}''{]} =
+(county\_level{[}``ffs\_q''{]} == q).astype(int)
+
+quartile\_table = ( county\_level .groupby({[}``ffs\_q'',
+``treated\_dummy''{]}){[}``avg\_bid''{]} .mean() .unstack() )
+print(``\nQ6 - Average Bid by FFS Quartile and Treatment:'')
+print(quartile\_table)
+
+\section{Load precomputed results}\label{load-precomputed-results}
+
+results = pd.read\_csv(``../../../data/output/ate\_results.csv'')
+summary = pd.read\_csv(``../../../data/output/ate\_summary.csv'')
+
+from IPython.display import display
+display(results.style.format(\{``ATE'': ``\{:.4f\}''\}))
+
+ate\_quartile\_ols = summary{[}summary{[}``estimator''{]} == ``ATE
+(quartile dummies)''{]}{[}``value''{]}.values{[}0{]}
+ate\_continuous\_ols = summary{[}summary{[}``estimator''{]} == ``ATE
+(continuous covariates)''{]}{[}``value''{]}.values{[}0{]}
+
+print(f''ATE (continuous covariates): \{ate\_continuous\_ols:.4f\}``)
+print(f''ATE (quartile dummies): \{ate\_quartile\_ols:.4f\}``)
+
+\subsection{Question 5: Average Bid Among Competitive vs Uncompetitive
+Markets}\label{question-5-average-bid-among-competitive-vs-uncompetitive-markets}
+
+Competitive markets (lower 33rd percentile HHI) tend to have lower
+average bids than uncompetitive markets (upper 66th percentile HHI),
+consistent with theory that less competition leads to higher bids.
+
+\subsection{Question 6: Average Bid by Treatment and FFS
+Quartile}\label{question-6-average-bid-by-treatment-and-ffs-quartile}
+
+The table above shows average bids broken down by FFS cost quartile and
+treatment group.
+
+\subsection{Question 7: ATE Estimates}\label{question-7-ate-estimates}
+
+The four estimators produce very similar ATEs. While not perfectly
+identical, differences are small and arise from minor weighting and
+functional form differences. The conclusions are consistent across all
+methods.
+
+\subsection{Question 8: Are the Results Similar Across
+Estimators?}\label{question-8-are-the-results-similar-across-estimators}
+
+The four estimators --- nearest neighbor matching (Euclidean and
+Mahalanobis), inverse propensity weighting, and OLS regression ---
+produce very similar estimated ATEs. While the numerical values are not
+perfectly identical, the differences are small and arise from minor
+weighting and functional form differences across methods. Substantively,
+the conclusions are the same, and the results are highly consistent.
+
+\subsection{Question 9: OLS with Continuous
+Covariates}\label{question-9-ols-with-continuous-covariates}
+
+Using continuous FFS costs and total Medicare beneficiaries yields a
+very similar treatment effect to the quartile-based estimate, suggesting
+that discretizing FFS costs into quartiles does not materially change
+results. Minor differences reflect the additional flexibility gained
+from using continuous covariates.
+
+\newpage
+
+\subsection{Question 10: Reflection}\label{question-10-reflection}
+
+One thing I learned is how to integrate multiple datasets across
+different geographic identifiers. One thing that was challenging was
+deciding how to organize my workflow and creating the merged 2014-2019
+dataset.
+
+\textbf{Repository:} git@github.com:valerie-hdz/homework2.git
+
+
+
+
+\end{document}

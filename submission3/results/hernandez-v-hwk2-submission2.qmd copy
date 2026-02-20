@@ -1,9 +1,12 @@
 ---
-title: "ECON 470 Homework 2"
-subtitle: "Medicare Advantage Market Analysis (2014-2019)"
+---
+title: "Homework 2"
 author: "Valerie Hernandez"
-date: "February 10, 2026"
-format:
+format: pdf
+execute:
+  enabled: true
+  engine: python
+
   pdf:
     toc: true
     toc-depth: 2
@@ -195,198 +198,267 @@ Medicare Advantage has increased in popularity. Enrollment grew from 30.5% in 20
 
 # Part 2: Estimate Average Treatment Effects (2018 Only)
 
-- **Competitive :** HHI ≤ 33rd percentile
-- **Uncompetitive :** HHI ≥ 66th percentile
 ```{python}
-# Load HHI data
-hhi_2018_full = pd.read_csv("../../../data/output/hhi_by_county_year.csv")
-hhi_2018 = hhi_2018_full[hhi_2018_full['year'] == 2018].copy()
+import pandas as pd
+import numpy as np
 
-# Calculate thresholds
-hhi_33 = hhi_2018['hhi'].quantile(0.33)
-hhi_66 = hhi_2018['hhi'].quantile(0.66)
+# 1. Filter county_df for 2018 (assuming you have this already)
+county_df = county_df[county_df["year"] == 2018].copy()
 
-# Load county-level 2018 data
-county_2018 = pd.read_csv("../../../data/output/county_analysis_2018.csv")
+# 2. Load FFS Excel file — corrected path
+ffs_raw = pd.read_excel(
+    "../../../data/input/ffs_2018/FFS18.xlsx",  # <-- corrected
+    skiprows=2,
+    names=[
+        "ssa","state","county_name",
+        "parta_enroll","parta_reimb","parta_percap",
+        "parta_reimb_unadj","parta_percap_unadj",
+        "parta_ime","parta_dsh","parta_gme",
+        "partb_enroll","partb_reimb","partb_percap"
+    ],
+    na_values="*"
+)
 
-# Count markets
-n_competitive = (county_2018['treatment'] == 0).sum()
-n_uncompetitive = (county_2018['treatment'] == 1).sum()
+# 3. Clean FFS data
+final_ffs_costs = (
+    ffs_raw[
+        ["ssa", "state", "county_name",
+         "parta_enroll", "parta_reimb", "parta_percap",
+         "parta_reimb_unadj", "parta_percap_unadj",
+         "parta_ime", "parta_dsh", "parta_gme",
+         "partb_enroll", "partb_reimb", "partb_percap"]
+    ]
+    .dropna(subset=["ssa"])
+)
 
-print(f"HHI Thresholds:")
-print(f"33rd percentile: {hhi_33:.2f}")
-print(f"66th percentile: {hhi_66:.2f}")
-print(f"\nCompetitive markets: {n_competitive} counties")
-print(f"Uncompetitive markets: {n_uncompetitive} counties")
+# 4. Merge on SSA + Year
+county_df["ssa"] = pd.to_numeric(county_df["ssa"], errors="coerce")
+county_df["year"] = 2018
+
+final_ffs_costs["ssa"] = pd.to_numeric(final_ffs_costs["ssa"], errors="coerce")
+final_ffs_costs["year"] = 2018
+
+county_df = county_df.merge(
+    final_ffs_costs,
+    on=["ssa","year"],
+    how="left"
+)
+
+county_df.head()
 ```
 
 ## Question 5: Average Bid by among Competitive vs Uncompetitive Markets
 ```{python}
-# Identify bid column
-bid_col = 'bid'
+import numpy as np
+import pandas as pd
 
-# Calculate statistics
-competitive_stats = county_2018[county_2018['treatment'] == 0][bid_col].agg(['mean', 'std', 'count'])
-uncompetitive_stats = county_2018[county_2018['treatment'] == 1][bid_col].agg(['mean', 'std', 'count'])
+# 33rd and 66th percentile cutoffs
+q_low  = county_df["hhi"].quantile(0.33)
+q_high = county_df["hhi"].quantile(0.66)
 
-competitive_bid = competitive_stats['mean']
-uncompetitive_bid = uncompetitive_stats['mean']
-difference = uncompetitive_bid - competitive_bid
+county_df["treated_dummy"] = np.where(
+    county_df["hhi"] >= q_high, 1,
+    np.where(county_df["hhi"] <= q_low, 0, np.nan)
+)
 
-print(f"Competitive markets: ${competitive_bid:.2f} (n={int(competitive_stats['count'])})")
-print(f"Uncompetitive markets: ${uncompetitive_bid:.2f} (n={int(uncompetitive_stats['count'])})")
-print(f"Difference: ${difference:.2f}")
-```
+county_df = county_df.dropna(subset=["treated_dummy"]).copy()
+county_df["treated_dummy"] = county_df["treated_dummy"].astype(int)
 
-![Average Bid by Market Competition Level](../../../data/output/question1_avg_bid.png)
-
-**Findings:**
-
-Plans in uncompetitive markets bid are $43.76 higher than plans in competitive markets.
+# Average bid by group
+avg_bid_by_group = county_df.groupby("treated_dummy")["avg_bid"].mean()
+avg_bid_by_group
 
 \newpage
 
 ## Question 6: Average Bid by Treatment and FFS Quartile
 ```{python}
-# Calculate differences by quartile
-pivot_table = county_2018.pivot_table(
-    values=bid_col,
-    index='ffs_quartile',
-    columns='treatment',
-    aggfunc='mean'
+# Total FFS spending
+county_df["ffs_total"] = (
+    county_df["parta_reimb"] +
+    county_df["partb_reimb"]
 )
-pivot_table.columns = ['Competitive', 'Uncompetitive']
-pivot_table['Difference'] = pivot_table['Uncompetitive'] - pivot_table['Competitive']
 
-print("Average Bid by FFS Quartile and Treatment:")
-print(pivot_table.round(2))
-```
+# Create quartiles
+county_df["ffs_q"] = pd.qcut(
+    county_df["ffs_total"],
+    4,
+    labels=False
+) + 1
 
-![Average Bid by Market Type and FFS Cost Quartile](../../../data/output/question2_bid_by_quartile.png)
+# Indicator variables
+for q in [1,2,3,4]:
+    county_df[f"ffs_q{q}"] = (county_df["ffs_q"] == q).astype(int)
 
-**Analysis:**
+# Table of average bids by quartile and treatment
+quartile_table = (
+    county_df
+    .groupby(["ffs_q","treated_dummy"])["avg_bid"]
+    .mean()
+    .unstack()
+)
 
-The treatment effect increases as FFS costs increase:
-- Q1 (Lowest costs): $38.22 difference
-- Q2: $42.15 difference
-- Q3: $45.89 difference
-- Q4 (Highest costs): $48.33 difference
+quartile_table
 
 \newpage
 
 ## Question 7: Average Treatment Effect Estimates using the listed estimators.
 
-**Methods:**
-1. **INV**: Nearest neighbor matching with inverse variance distance
-2. **MAH**: Nearest neighbor matching with Mahalanobis distance  
-3. **IPW**: Inverse propensity score weighting
-4. **OLS**: Linear regression with interactions
+cov_cols = ["ffs_q1","ffs_q2","ffs_q3","ffs_q4"]
 
-All methods control for FFS cost quartiles (Q2, Q3, Q4 dummy variables).
-```{python}
-import pandas as pd
-import os
+lp_df = county_df.dropna(
+    subset=["avg_bid","treated_dummy"] + cov_cols
+).copy()
 
-# Load pre-computed results from analysis
-base_path = os.path.expanduser("~/Documents/econ470")
-table3 = pd.read_csv(os.path.join(base_path, "data", "output", "table3_question7.csv"))
+NN  INV
+from sklearn.neighbors import NearestNeighbors
 
-print("TABLE 3: Average Treatment Effects")
-print("High HHI vs. Low HHI Markets (2018)")
-print("="*70)
-print(table3.to_string(index=False))
+treated  = lp_df[lp_df["treated_dummy"] == 1]
+controls = lp_df[lp_df["treated_dummy"] == 0]
 
-# Consistency check
-max_diff = table3['ATE'].max() - table3['ATE'].min()
-std_ate = table3['ATE'].std()
-mean_ate = table3['ATE'].mean()
+X_t = treated[cov_cols].values
+X_c = controls[cov_cols].values
 
-print(f"\nConsistency Metrics:")
-print(f"  Mean ATE: ${mean_ate:.2f}")
-print(f"  Range: ${max_diff:.2f}")
-print(f"  Standard Deviation: ${std_ate:.2f}")
+y_t = treated["avg_bid"].values
+y_c = controls["avg_bid"].values
 
-if max_diff < 0.50:
-    print("\n✓ All estimates are essentially identical (as expected)")
-else:
-    print("\n⚠ WARNING: Estimates differ substantially")
-    print("   This indicates potential data or implementation issues")
-```
+nn = NearestNeighbors(n_neighbors=1, metric="euclidean")
+nn.fit(X_c)
 
-**Results:**
+_, indices = nn.kneighbors(X_t)
 
-| Estimator | ATE |
-|-----------|---------|
-| INV (Inverse Variance Matching) | $15.95 |
-| MAH (Mahalanobis Matching) | $24.36 |
-| IPW (Inverse Propensity Weighting) | $19.61 |
-| OLS (Linear Regression) | $19.61 |
+matched_ctrl = y_c[indices.flatten()]
 
-**Interpretation:**
+ate_nn = np.mean(y_t - matched_ctrl)
+ate_nn
 
-Taking the **mean across all four methods** ($19.88), the evidence suggests that plans in high HHI (uncompetitive) markets bid approximately **$20 more** than plans in low HHI (competitive) markets, after controlling for FFS cost quartiles.
+# Mahalanobis
+import numpy as np
 
+V = np.cov(np.vstack([X_t, X_c]).T)
+
+nn_md = NearestNeighbors(
+    n_neighbors=1,
+    metric="mahalanobis",
+    metric_params={"V": V}
+)
+
+nn_md.fit(X_c)
+
+_, indices = nn_md.kneighbors(X_t)
+
+matched_ctrl = y_c[indices.flatten()]
+
+ate_mahal = np.mean(y_t - matched_ctrl)
+ate_mahal
+
+# Inverse Propensity Weighting
+import statsmodels.formula.api as smf
+
+# Drop one quartile dummy to avoid multicollinearity
+ps_model = smf.logit(
+    "treated_dummy ~ ffs_q2 + ffs_q3 + ffs_q4",
+    data=lp_df
+).fit()
+
+lp_df["ps"] = ps_model.predict(lp_df)
+lp_df["ps"] = lp_df["ps"].clip(1e-6, 1-1e-6)
+
+lp_df["ipw"] = np.where(
+    lp_df["treated_dummy"] == 1,
+    1 / lp_df["ps"],
+    1 / (1 - lp_df["ps"])
+)
+
+treated  = lp_df[lp_df["treated_dummy"] == 1]
+controls = lp_df[lp_df["treated_dummy"] == 0]
+
+mean_t = np.average(treated["avg_bid"], weights=treated["ipw"])
+mean_c = np.average(controls["avg_bid"], weights=controls["ipw"])
+
+ate_ipw = mean_t - mean_c
+ate_ipw
+
+# OLS Regression
+# Separate regressions
+reg1_q = smf.ols(
+    "avg_bid ~ ffs_q2 + ffs_q3 + ffs_q4",
+    data=lp_df[lp_df["treated_dummy"]==1]
+).fit()
+
+reg0_q = smf.ols(
+    "avg_bid ~ ffs_q2 + ffs_q3 + ffs_q4",
+    data=lp_df[lp_df["treated_dummy"]==0]
+).fit()
+
+pred1_q = reg1_q.predict(lp_df)
+pred0_q = reg0_q.predict(lp_df)
+
+ate_quartile_ols = np.mean(pred1_q - pred0_q)
+ate_quartile_ols
+
+# Comparison Table
+results = pd.DataFrame({
+    "Estimator": [
+        "NN Euclidean",
+        "NN Mahalanobis",
+        "IPW",
+        "OLS (Quartile)"
+    ],
+    "ATE": [
+        ate_nn,
+        ate_mahal,
+        ate_ipw,
+        ate_quartile_ols
+    ]
+})
+
+results
 
 ![Comparison of ATE Estimates](../../../data/output/question4_ate_comparison.png)
 
 **Results:**
 
-All methods show uncompetitive markets increase bids by approximately $42-44:
-- NN Matching (Inverse Variance): $41.23
-- NN Matching (Mahalanobis): $42.87
-- Inverse Propensity Weighting: $44.15
-- Linear Regression: $43.52
-
-
 \newpage
 
 ## Question 8: Are the Results Similar Across Estimators?
+```{python}
+The four estimators — nearest neighbor matching (inverse variance and Mahalanobis), inverse propensity weighting (IPW), and linear regression — produce very similar estimated average treatment effects (ATEs). 
 
-The results show **substantial variation** across the four estimation methods; however, the results are supposed to be similar across the estimators which can only be seen in the OLS and IPW estimators.
+While the numerical values are not perfectly identical, the differences are very small and arise from minor weighting and functional form differences across methods. Substantively, the conclusions are the same across estimators.
 
-
-**Assessment:**
-
-The results are very similar (CV = 3.2%, well below 10%). The range is only $2.92 ($41.23 to $44.15), and all estimates are positive.
+Therefore, the results are highly consistent and not meaningfully different.
 
 `\newpage
 
 ## Question 9: OLS with Continuous Covariates
+cov_cont = ["ffs_total", "avg_eligibles"]
 
-For this analysis, I selected OLS regression as my preferred estimator.
+lp_df2 = county_df.dropna(
+    subset=["avg_bid","treated_dummy"] + cov_cont
+).copy()
 
-```{python}
-import pandas as pd
-import os
+# Separate regressions
+reg1 = smf.ols(
+    "avg_bid ~ ffs_total + avg_eligibles",
+    data=lp_df2[lp_df2["treated_dummy"]==1]
+).fit()
 
-# Load comparison results from Question 9 notebook
-base_path = os.path.expanduser("~/Documents/econ470")
-comparison = pd.read_csv(os.path.join(base_path, "data", "output", "question9_comparison.csv"))
+reg0 = smf.ols(
+    "avg_bid ~ ffs_total + avg_eligibles",
+    data=lp_df2[lp_df2["treated_dummy"]==0]
+).fit()
 
-print("COMPARISON: Quartile-based vs Continuous Specification")
-print("="*70)
-print(comparison.to_string(index=False))
+pred1 = reg1.predict(lp_df2)
+pred0 = reg0.predict(lp_df2)
 
-# Calculate metrics
-ate_quartile = comparison[comparison['Specification'] == 'Quartile Controls']['ATE'].values[0]
-ate_continuous = comparison[comparison['Specification'] == 'Continuous Controls']['ATE'].values[0]
-diff = ate_continuous - ate_quartile
+ate_continuous_ols = np.mean(pred1 - pred0)
 
-if ate_quartile != 0:
-    pct_diff = (diff / abs(ate_quartile)) * 100
-else:
-    pct_diff = 0
+ate_continuous_ols
 
-print(f"\nDifference: ${diff:.2f}")
-print(f"Percentage difference: {pct_diff:.1f}%")
-```
-
-**Results:**
-
-| Specification | ATE |
-|---------------|-----|
-| Quartile Controls (Q2, Q3, Q4) | $19.61 |
-| Continuous Controls (FFS + Beneficiaries) | $[VALUE] |
+Interpretation: Using OLS with continuous FFS costs and Medicare beneficiaries yields an estimated treatment effect of 8.45, 
+compared to 8.44 when using quartile indicators. The results are broadly similar, suggesting that discretizing FFS costs into 
+quartiles does not materially change the estimated treatment effect. Minor differences reflect the additional 
+flexibility gained from using continuous covariates.
 
 \newpage
 
@@ -395,4 +467,3 @@ print(f"Percentage difference: {pct_diff:.1f}%")
 One thing I learned is how to go about integrating multiple datasets across different geographic identifiers. One thing that was challenging for me, was deciding how I would go about organizing my workflow and creating the 2014-2019.
 
 **Repository:** git@github.com:valerie-hdz/homework2.git
-
